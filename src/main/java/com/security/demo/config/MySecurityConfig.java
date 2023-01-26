@@ -3,6 +3,8 @@ package com.security.demo.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,6 +15,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+//import com.security.demo.service.UserInfoUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
@@ -28,13 +32,20 @@ public class MySecurityConfig {
 
 		return new InMemoryUserDetailsManager(test, demo);
 	}
+	
+//	@Bean
+//	public UserDetailsService userDetailsService(PasswordEncoder encoder) {
+//
+//		return new UserInfoUserDetailsService();
+//	}
 
 	@Bean 
 	public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
 		return security.csrf().disable().
-				authorizeHttpRequests().requestMatchers("/home/welcome").permitAll()
+				authorizeHttpRequests().requestMatchers("/welcome", "/addUser", "/authenticate").permitAll()
 				.and()
-				.authorizeHttpRequests().requestMatchers("/home/**").authenticated()
+//				.authorizeHttpRequests().requestMatchers("/**").authenticated()
+				.authorizeHttpRequests().anyRequest().authenticated()
 				.and()
 				.formLogin()
 				.and().build();
@@ -43,6 +54,12 @@ public class MySecurityConfig {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+	
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) 
+	         throws Exception {
+	    return authenticationConfiguration.getAuthenticationManager();
 	}
 
 }
