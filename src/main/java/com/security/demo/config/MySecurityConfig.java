@@ -4,6 +4,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,9 +15,13 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.security.demo.util.JwtRequestFilter;
 
 //import com.security.demo.service.UserInfoUserDetailsService;
 
@@ -22,6 +29,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class MySecurityConfig {
+	
 
 	@Bean
 	public UserDetailsService userDetailsService(PasswordEncoder encoder) {
@@ -40,12 +48,13 @@ public class MySecurityConfig {
 //	}
 
 	@Bean 
-	public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity security, JwtRequestFilter jwtRequestFilter) throws Exception {
+		security.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 		return security.csrf().disable().
 				authorizeHttpRequests().requestMatchers("/welcome", "/addUser", "/authenticate").permitAll()
 				.and()
-//				.authorizeHttpRequests().requestMatchers("/**").authenticated()
-				.authorizeHttpRequests().anyRequest().authenticated()
+				.authorizeHttpRequests().requestMatchers("/**").authenticated()
+//				.authorizeHttpRequests().anyRequest().authenticated()
 				.and()
 				.formLogin()
 				.and().build();
@@ -55,6 +64,14 @@ public class MySecurityConfig {
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
+	
+//	@Bean
+//	public AuthenticationProvider authenticationProvider() {
+//		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+//		authenticationProvider.setUserDetailsService(userDetailsService(passwordEncoder()));
+//		authenticationProvider.setPasswordEncoder(passwordEncoder());
+//		return authenticationProvider;
+//	}
 	
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) 
